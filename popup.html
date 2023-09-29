@@ -2,11 +2,28 @@
 <head>
   <title>Home</title>
   <link rel="dns-prefetch" href="//stream0.wfmu.org">
+  <style>
+    .button {
+      background-color: #ffffff;
+      border: none;
+      cursor: pointer;
+      width: 50px;
+      height: 50px;
+      padding: 25px;
+      background-image: url(./images/pause.svg);
+      text-indent: -99999px;
+      overflow: hidden;
+    }
+
+    .button.paused {
+      background-image: url(./images/play.svg)
+    }
+  </style>
 </head>
 <body>
   <div class="container">
     <div class="content">
-      <button class="play">Play WFMU</button>
+      <button class="play button paused">Play WFMU</button>
     </div>
   </div>
   <script src="./scripts/popup.js"></script>

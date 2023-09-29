@@ -8,13 +8,22 @@ async function updateAudioState() {
   audioState = state.audioState;
 }
 
-function updateButtonText() {
+function updateUI(audioState) {
   button.innerHTML = audioState ? "Pause WFMU" : "Play WFMU";
+  chrome.action.setBadgeText({
+    text: audioState ? "ON" : ""
+  });
+  if (audioState) {
+    button.classList.remove('paused')
+  }
+  else {
+    button.classList.add('paused');
+  }
 }
 
 async function init() {
   await updateAudioState();
-  updateButtonText();
+  updateUI(audioState);
 }
 
 init();
@@ -53,10 +62,7 @@ async function toggleAudio() {
     audioState: audioState
   });
   if (response.success) {
-    button.innerHTML = audioState ? "Pause WFMU" : "Play WFMU";
-    chrome.action.setBadgeText({
-      text: audioState ? "ON" : ""
-    });
+    updateUI(audioState);
   }
 }
 
