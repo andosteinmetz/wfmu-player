@@ -3,7 +3,12 @@
   <title>Home</title>
   <link rel="dns-prefetch" href="//stream0.wfmu.org">
   <style>
+    body {
+      width: 100px;
+    }
     .button {
+      display: block;
+      margin: 0 auto;
       background-color: #ffffff;
       border: none;
       cursor: pointer;
@@ -24,6 +29,10 @@
   <div class="container">
     <div class="content">
       <button class="play button paused">Play WFMU</button>
+      <div class="now-playing">
+        <div><span class="artist"></span><span class="track"></span></div> 
+        <div><span class="show"></span></div>
+      </div>
     </div>
   </div>
   <script src="./scripts/popup.js"></script>

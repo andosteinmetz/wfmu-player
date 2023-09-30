@@ -1,10 +1,37 @@
 const button = document.querySelector('.play');
+const nowPlaying = document.querySelector('.now-playing');
+const artistContainer = nowPlaying.querySelector('.artist');
+const trackContainer = nowPlaying.querySelector('.track');
+const showContainer = nowPlaying.querySelector('.show');
 
 let creating; // A global promise to avoid concurrency issues
 let audioState = false;
 
+init();
+
+button.addEventListener("click", async () => {
+  console.log('clicked');
+  await setupOffscreenDocument('background.html');
+  await toggleAudio();  
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.hasOwnProperty("audioState") && request.audioState) {
+    chrome.action.setBadgeText({
+      text: request.audioState
+    });
+  }
+});
+
+async function init() {
+  await updateAudioState();
+  updateUI(audioState);
+  updateNowPlaying();
+  setInterval(updateNowPlaying, 5000);
+}
+
 async function updateAudioState() {
-  state = await chrome.storage.local.get(['audioState']);
+  const state = await chrome.storage.local.get(['audioState']);
   audioState = state.audioState;
 }
 
@@ -21,12 +48,21 @@ function updateUI(audioState) {
   }
 }
 
-async function init() {
-  await updateAudioState();
-  updateUI(audioState);
+function getShowName(onNowJSON){
+  const data = JSON.parse(onNowJSON);
+  console.log(data);
+  const showNameIndex = data.COLUMNS.indexOf("showName");
+  return data.DATA[0][showNameIndex];
 }
 
-init();
+async function updateNowPlaying() {
+  const response = await chrome.runtime.sendMessage({ destination: "updatePlaylist" });
+  if(response.hasOwnProperty("playlistData")){
+    artistContainer.innerHTML = `${response.playlistData.artist} ${response.playlistData.track && " - "}`;
+    trackContainer.innerHTML = response.playlistData.track;
+    showContainer.innerHTML = `on ${getShowName(response.playlistData.onNowJSON)}`;
+  }
+}
 
 async function setupOffscreenDocument(path) {
   // Check all windows controlled by the service worker to see if one 
@@ -65,18 +101,3 @@ async function toggleAudio() {
     updateUI(audioState);
   }
 }
-
-button.addEventListener("click", async () => {
-  console.log('clicked');
-  await setupOffscreenDocument('background.html');
-  await toggleAudio();  
-});
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.audioState) {
-    chrome.action.setBadgeText({
-      text: request.audioState
-    });
-  }
-});
-

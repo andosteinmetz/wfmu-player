@@ -12,11 +12,8 @@
     },
     "default_popup": "popup.html"
   },
-  "content_scripts": [
-    {
-      "matches": ["*://*/*"],
-      "js": ["scripts/content.js"]
-    }
-  ],
+  "background": {
+    "service_worker": "scripts/service_worker.js"
+  },
   "permissions": ["offscreen", "storage"]
 }
