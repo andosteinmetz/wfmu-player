@@ -92,9 +92,10 @@ async function updateNowPlaying() {
   if (["artist", "track", "onNowJSON"].every(key => response.playlistData[key] === cachedPlaylistData[key])) {
     return;
   }
-  const { artist, track, playlistID, onNowJSON } = response.playlistData;
+  const { artist, track, playlistID, artistBlurb, onNowJSON } = response.playlistData;
   artistContainer.innerHTML = artist;
   trackContainer.innerHTML = `\"${track}\" ${artist && "by "}`;
+  artistContainer.title = artistBlurb || "";
   [showName, showHost, showURL] = ["showName", "showHost", "showURL"]
     .map(onNowPropertyFactory)
     .map(fn => fn(onNowJSON));
@@ -103,7 +104,7 @@ async function updateNowPlaying() {
   }
 
 function buildShowMarkup(showName, showHost, showURL, playlistID){
-  return `on <a href="https://www.wfmu.org/playlists/shows/${playlistID}" target="_blank">${showName}</a> with <a href="${showURL}" target="_blank">${showHost}</a>`;
+  return `on <a href="https://www.wfmu.org/playlists/shows/${playlistID}" target="_blank">${showName}</a> ${showHost && "with"} <a href="${showURL}" target="_blank">${showHost}</a>`;
 }
 
 async function setupOffscreenDocument(path) {
