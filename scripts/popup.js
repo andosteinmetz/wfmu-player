@@ -10,9 +10,12 @@ let audioState = false;
 init();
 
 button.addEventListener("click", async () => {
-  console.log('clicked');
+  button.ariaDisabled = true;
+  button.disabled = true;
   await setupOffscreenDocument('background.html');
   await toggleAudio();  
+  button.ariaDisabled = false;
+  button.disabled = false;
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
