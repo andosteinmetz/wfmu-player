@@ -1,4 +1,5 @@
 const button = document.querySelector('.play');
+const loadingAnimation = document.querySelector('.loading-animation');
 const nowPlaying = document.querySelector('.now-playing');
 const artistContainer = nowPlaying.querySelector('.artist');
 const trackContainer = nowPlaying.querySelector('.track');
@@ -7,15 +8,16 @@ const showContainer = nowPlaying.querySelector('.show');
 let creating; // A global promise to avoid concurrency issues
 let audioState = false;
 
+let cachedPlaylistData = {};
+
 init();
 
 button.addEventListener("click", async () => {
-  button.ariaDisabled = true;
-  button.disabled = true;
+  disableButton();
   await setupOffscreenDocument('background.html');
   await toggleAudio();  
-  button.ariaDisabled = false;
-  button.disabled = false;
+  enableButton();
+  return true;
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -26,11 +28,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
+function disableButton() {
+  button.ariaDisabled = true;
+  button.setAttribute("disabled", "disabled");
+  loadingAnimation.classList.remove("hidden");
+}
+
+function enableButton() {
+  loadingAnimation.classList.add("hidden");
+  button.ariaDisabled = false;
+  button.removeAttribute("disabled");
+}
+
 async function init() {
+  setupOffscreenDocument('background.html');
   await updateAudioState();
   updateUI(audioState);
   updateNowPlaying();
   setInterval(updateNowPlaying, 5000);
+}
+
+function fixLinks(){
+  const links = document.querySelectorAll("a");
+
+  links.forEach(link => {
+    const location = link.getAttribute('href');
+    link.addEventListener('click', () => chrome.tabs.create({active: true, url: location}));
+  });
 }
 
 async function updateAudioState() {
@@ -39,7 +63,7 @@ async function updateAudioState() {
 }
 
 function updateUI(audioState) {
-  button.innerHTML = audioState ? "Pause WFMU" : "Play WFMU";
+  // button.innerHTML = audioState ? "Pause WFMU" : "Play WFMU";
   chrome.action.setBadgeText({
     text: audioState ? "ON" : ""
   });
@@ -51,20 +75,35 @@ function updateUI(audioState) {
   }
 }
 
-function getShowName(onNowJSON){
-  const data = JSON.parse(onNowJSON);
-  console.log(data);
-  const showNameIndex = data.COLUMNS.indexOf("showName");
-  return data.DATA[0][showNameIndex];
+function onNowPropertyFactory(property){
+  return (onNowJSON) => {
+    const data = JSON.parse(onNowJSON);
+    return data.DATA[0][data.COLUMNS.indexOf(property)]
+  };
 }
 
 async function updateNowPlaying() {
   const response = await chrome.runtime.sendMessage({ destination: "updatePlaylist" });
-  if(response.hasOwnProperty("playlistData")){
-    artistContainer.innerHTML = `${response.playlistData.artist} ${response.playlistData.track && " - "}`;
-    trackContainer.innerHTML = response.playlistData.track;
-    showContainer.innerHTML = `on ${getShowName(response.playlistData.onNowJSON)}`;
+  if (!response.hasOwnProperty("playlistData")) { 
+    return
   }
+  
+  // avoid unnecessary DOM updates
+  if (["artist", "track", "onNowJSON"].every(key => response.playlistData[key] === cachedPlaylistData[key])) {
+    return;
+  }
+  const { artist, track, playlistID, onNowJSON } = response.playlistData;
+  artistContainer.innerHTML = artist;
+  trackContainer.innerHTML = `\"${track}\" ${artist && "by "}`;
+  [showName, showHost, showURL] = ["showName", "showHost", "showURL"]
+    .map(onNowPropertyFactory)
+    .map(fn => fn(onNowJSON));
+
+  showContainer.innerHTML = buildShowMarkup(showName, showHost, showURL, playlistID);
+  }
+
+function buildShowMarkup(showName, showHost, showURL, playlistID){
+  return `on <a href="https://www.wfmu.org/playlists/shows/${playlistID}" target="_blank">${showName}</a> with <a href="${showURL}" target="_blank">${showHost}</a>`;
 }
 
 async function setupOffscreenDocument(path) {

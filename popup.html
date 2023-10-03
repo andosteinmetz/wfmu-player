@@ -5,23 +5,70 @@
   <style>
     body {
       width: 200px;
+      padding: 5px 20px 10px;
     }
+
+    a {
+      color: inherit;
+    }
+
     .button {
       display: block;
-      margin: 0 auto;
+      margin: 0 auto 5px;
       background-color: #ffffff;
       border: none;
+      box-sizing: border-box;
       cursor: pointer;
       width: 50px;
       height: 50px;
       padding: 25px;
+      position: relative;
       background-image: url(./images/pause.svg);
-      text-indent: -99999px;
+      /* text-indent: -99999px; */
       overflow: hidden;
     }
 
     .button.paused {
       background-image: url(./images/play.svg)
+    }
+
+    .button.loading {
+      background-image: none;
+    }
+
+    .loading-animation {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50px;
+      height: 50px;
+    }
+
+    .hidden {
+      visibility: hidden;
+    }
+
+    .loading-animation__circle {
+      fill: none;
+      stroke: black;
+      stroke-width: 4;
+      stroke-dasharray: 250;
+      stroke-dashoffset: 1000;
+      animation: rotate 5s linear infinite;
+    }
+
+    .track-info {
+      font-weight: bold;
+    }
+
+    .show {
+      margin-top: 0.5rem;
+    }
+
+    @keyframes rotate {
+      to {
+        stroke-dashoffset: 0;
+      }
     }
 
     .button[disabled] {
@@ -32,10 +79,14 @@
 <body>
   <div class="container">
     <div class="content">
-      <button class="play button paused">Play WFMU</button>
+      <div class="play button paused">
+        <svg class="loading-animation hidden" width="50" height="50">
+          <circle cx="25" cy="25" r="20" class="loading-animation__circle"></circle>
+        </svg>
+      </div>
       <div class="now-playing">
-        <div><span class="artist"></span><span class="track"></span></div> 
-        <div><span class="show"></span></div>
+        <div class="track-info"><span class="track"></span><span class="artist"></span></div> 
+        <div class="show"></div>
       </div>
     </div>
   </div>

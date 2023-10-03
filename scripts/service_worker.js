@@ -10,11 +10,9 @@ const playlistRef = firebase.database().ref('playlistData/wfmu');
 
 playlistRef.on("value", async function(snapshot){
   const changedPost = snapshot.val();
-  chrome.storage.local.set({
-    artist: changedPost.artist, 
-    track: changedPost.track, 
-    onNowJSON: changedPost.onNowJSON
-  });
+  // console.log(changedPost);
+  const {artist, track, onNowJSON, playlistID} = changedPost;
+  chrome.storage.local.set({artist, track, onNowJSON, playlistID});
 })
 
 chrome.runtime.onStartup.addListener(() => {
@@ -31,10 +29,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 async function getPlaylistData() {
-  const { artist, track, onNowJSON } = await chrome.storage.local.get(["artist", "track", "onNowJSON"]);
+  const { artist, track, playlistID, onNowJSON } = await chrome.storage.local.get(["artist", "track", "playlistID", "onNowJSON"]);
+  // console.log(JSON.parse(onNowJSON))
   return {
     artist,
     track,
+    playlistID,
     onNowJSON
   }
 }
