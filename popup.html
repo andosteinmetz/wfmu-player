@@ -12,9 +12,23 @@
       color: inherit;
     }
 
+    .flex-header {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .flex-header > * {
+      margin: 0 4px;
+    }
+
+    .wf, .mu {
+      height: 50px;
+      width: auto;
+    }
+
     .button {
       display: block;
-      margin: 0 auto 5px;
       background-color: #ffffff;
       border: none;
       box-sizing: border-box;
@@ -24,8 +38,14 @@
       padding: 25px;
       position: relative;
       background-image: url(./images/pause.svg);
-      /* text-indent: -99999px; */
       overflow: hidden;
+    }
+
+    .button__accessibility-text {
+      display: block;
+      overflow: hidden;
+      line-height: 0;
+      text-indent: -99999px;
     }
 
     .button.paused {
@@ -83,10 +103,15 @@
 <body>
   <div class="container">
     <div class="content">
+      <div class="flex-header">
+      <img class="wf" src="./images/wf.png">
       <div class="play button paused">
+        <span class="button__accessibility-text">Play WFMU</span>
         <svg class="loading-animation hidden" width="50" height="50">
           <circle cx="25" cy="25" r="20" class="loading-animation__circle"></circle>
         </svg>
+      </div>
+      <img class="mu" src="./images/mu.png">
       </div>
       <div class="now-playing">
         <div class="track-info"><span class="track"></span><span class="artist"></span></div> 

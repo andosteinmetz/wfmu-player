@@ -3,9 +3,8 @@ self.importScripts("./vendor/firebase-compat.js")
 const config = {
   databaseURL: "radiorethinkprod-default-rtdb.firebaseio.com"
 }
+
 firebase.initializeApp(config);
-
-
 const playlistRef = firebase.database().ref('playlistData/wfmu');
 
 playlistRef.on("value", async function(snapshot){

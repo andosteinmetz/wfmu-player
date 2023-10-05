@@ -1,4 +1,5 @@
 const button = document.querySelector('.play');
+const buttonText = button.querySelector('.button__accessibility-text');
 const loadingAnimation = document.querySelector('.loading-animation');
 const nowPlaying = document.querySelector('.now-playing');
 const artistContainer = nowPlaying.querySelector('.artist');
@@ -48,22 +49,13 @@ async function init() {
   setInterval(updateNowPlaying, 5000);
 }
 
-function fixLinks(){
-  const links = document.querySelectorAll("a");
-
-  links.forEach(link => {
-    const location = link.getAttribute('href');
-    link.addEventListener('click', () => chrome.tabs.create({active: true, url: location}));
-  });
-}
-
 async function updateAudioState() {
   const state = await chrome.storage.local.get(['audioState']);
   audioState = state.audioState;
 }
 
 function updateUI(audioState) {
-  // button.innerHTML = audioState ? "Pause WFMU" : "Play WFMU";
+  buttonText.innerHTML = audioState ? "Pause WFMU" : "Play WFMU";
   chrome.action.setBadgeText({
     text: audioState ? "ON" : ""
   });
@@ -75,7 +67,7 @@ function updateUI(audioState) {
   }
 }
 
-function onNowPropertyFactory(property){
+function onNowPropertyFactory(property) {
   return (onNowJSON) => {
     const data = JSON.parse(onNowJSON);
     return data.DATA[0][data.COLUMNS.indexOf(property)]
@@ -87,24 +79,39 @@ async function updateNowPlaying() {
   if (!response.hasOwnProperty("playlistData")) { 
     return
   }
-  
   // avoid unnecessary DOM updates
   if (["artist", "track", "onNowJSON"].every(key => response.playlistData[key] === cachedPlaylistData[key])) {
     return;
   }
+  
   const { artist, track, playlistID, artistBlurb, onNowJSON } = response.playlistData;
   artistContainer.innerHTML = artist;
   trackContainer.innerHTML = `\"${track}\" ${artist && "by "}`;
   artistContainer.title = artistBlurb || "";
+
+  updateShowInfo(onNowJSON, playlistID);
+}
+
+function updateShowInfo(onNowJSON, playlistID) {
   [showName, showHost, showURL] = ["showName", "showHost", "showURL"]
     .map(onNowPropertyFactory)
     .map(fn => fn(onNowJSON));
-
   showContainer.innerHTML = buildShowMarkup(showName, showHost, showURL, playlistID);
-  }
+}
 
-function buildShowMarkup(showName, showHost, showURL, playlistID){
+function buildShowMarkup(showName, showHost, showURL, playlistID) {
   return `on <a href="https://www.wfmu.org/playlists/shows/${playlistID}" target="_blank">${showName}</a> ${showHost && "with"} <a href="${showURL}" target="_blank">${showHost}</a>`;
+}
+
+async function toggleAudio() {
+  audioState = !audioState;
+  const response = await chrome.runtime.sendMessage({
+    audioState: audioState
+  });
+  if (response.success) {
+    updateUI(audioState);
+    chrome.storage.local.set({audioState: audioState});
+  }
 }
 
 async function setupOffscreenDocument(path) {
@@ -131,16 +138,5 @@ async function setupOffscreenDocument(path) {
     });
     await creating;
     creating = null;
-  }
-}
-
-async function toggleAudio() {
-  audioState = !audioState;
-  chrome.storage.local.set({audioState: audioState});
-  const response = await chrome.runtime.sendMessage({
-    audioState: audioState
-  });
-  if (response.success) {
-    updateUI(audioState);
   }
 }
