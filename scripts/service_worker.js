@@ -1,4 +1,4 @@
-self.importScripts("./vendor/firebase-compat.js")
+self.importScripts("./vendor/gstatic.com_firebasejs_10.4.0_firebase-app-compat.js", "./vendor/gstatic.com_firebasejs_10.4.0_firebase-database-compat.js")
 
 const config = {
   databaseURL: "radiorethinkprod-default-rtdb.firebaseio.com"
