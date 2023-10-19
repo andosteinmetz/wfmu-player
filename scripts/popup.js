@@ -85,8 +85,8 @@ async function updateNowPlaying() {
   }
   
   const { artist, track, playlistID, artistBlurb, onNowJSON } = response.playlistData;
-  artistContainer.innerHTML = artist;
-  trackContainer.innerHTML = `\"${track}\" ${artist && "by "}`;
+  artistContainer.innerHTML = `by <strong>${artist}</strong>`;
+  trackContainer.innerHTML = `\"${track}\"`;
   artistContainer.title = artistBlurb || "";
 
   updateShowInfo(onNowJSON, playlistID);
@@ -100,7 +100,7 @@ function updateShowInfo(onNowJSON, playlistID) {
 }
 
 function buildShowMarkup(showName, showHost, showURL, playlistID) {
-  return `on <a href="https://www.wfmu.org/playlists/shows/${playlistID}" target="_blank">${showName}</a> ${showHost && "with"} <a href="${showURL}" target="_blank">${showHost}</a>`;
+  return `on <a href="https://www.wfmu.org/playlists/shows/${playlistID}" target="_blank">${showName}</a> ${showHost && "with"} <div target="_blank">${showHost}</div>`;
 }
 
 async function toggleAudio() {

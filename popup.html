@@ -4,8 +4,10 @@
   <link rel="dns-prefetch" href="//stream0.wfmu.org">
   <style>
     body {
-      width: 200px;
-      padding: 5px 20px 10px;
+      width: 300px;
+      /* padding: 5px 0px 10px; */
+      margin: 0;
+      border-radius: 5px;
     }
 
     a {
@@ -13,9 +15,12 @@
     }
 
     .flex-header {
+      background: #000000;
       display: flex;
       justify-content: center;
-      margin-bottom: 1rem;
+      /* margin-bottom: 1rem; */
+      padding: 20px 40px 20px;
+      border-bottom: 1px dashed #eee;
     }
 
     .flex-header > * {
@@ -29,7 +34,7 @@
 
     .button {
       display: block;
-      background-color: #ffffff;
+      background-color: #000000;
       border: none;
       box-sizing: border-box;
       cursor: pointer;
@@ -76,10 +81,6 @@
       stroke-dashoffset: 1000;
       animation: rotate 5s linear infinite;
     }
-
-    .track-info {
-      font-weight: bold;
-    }
     
     .artist {
       cursor: pointer;
@@ -87,6 +88,14 @@
 
     .show {
       margin-top: 0.5rem;
+    }
+
+    .now-playing {
+      text-align: center;
+      background: #444;
+      color: #eee;
+      line-height: 1.5;
+      padding: 20px 40px;
     }
 
     @keyframes rotate {
@@ -104,17 +113,17 @@
   <div class="container">
     <div class="content">
       <div class="flex-header">
-      <img class="wf" src="./images/wf.png">
+      <img class="wf" src="./images/wf-white.png">
       <div class="play button paused">
         <span class="button__accessibility-text">Play WFMU</span>
         <svg class="loading-animation hidden" width="50" height="50">
           <circle cx="25" cy="25" r="20" class="loading-animation__circle"></circle>
         </svg>
       </div>
-      <img class="mu" src="./images/mu.png">
+      <img class="mu" src="./images/mu-white.png">
       </div>
       <div class="now-playing">
-        <div class="track-info"><span class="track"></span><span class="artist"></span></div> 
+        <div class="track-info"><div class="track"></div><div class="artist"></div></div> 
         <div class="show"></div>
       </div>
     </div>
