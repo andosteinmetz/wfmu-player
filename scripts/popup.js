@@ -100,7 +100,7 @@ function updateShowInfo(onNowJSON, playlistID) {
 }
 
 function buildShowMarkup(showName, showHost, showURL, playlistID) {
-  return `on <a href="https://www.wfmu.org/playlists/shows/${playlistID}" target="_blank">${showName}</a> ${showHost && "with"} <div target="_blank">${showHost}</div>`;
+  return `on <a href="https://www.wfmu.org/playlists/shows/${playlistID}" target="_blank">${showName}</a> ${showHost && "with"}<br>${showHost}`;
 }
 
 async function toggleAudio() {
