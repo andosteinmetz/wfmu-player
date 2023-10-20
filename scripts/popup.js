@@ -21,14 +21,6 @@ button.addEventListener("click", async () => {
   return true;
 });
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.hasOwnProperty("audioState") && request.audioState) {
-    chrome.action.setBadgeText({
-      text: request.audioState
-    });
-  }
-});
-
 function disableButton() {
   button.ariaDisabled = true;
   button.setAttribute("disabled", "disabled");
@@ -45,8 +37,8 @@ async function init() {
   setupOffscreenDocument('background.html');
   await updateAudioState();
   updateUI(audioState);
-  updateNowPlaying();
-  setInterval(updateNowPlaying, 5000);
+  updatePlaylist();
+  setInterval(updatePlaylist, 1000);
 }
 
 async function updateAudioState() {
@@ -67,6 +59,12 @@ function updateUI(audioState) {
   }
 }
 
+/**
+ * @param {string} property 
+ * @returns {Function}
+ * @description Factory function to return a function that will return the value of a property from the onNowJSON
+ * which is scructured as two arrays, one of column names and one of data.
+ */
 function onNowPropertyFactory(property) {
   return (onNowJSON) => {
     const data = JSON.parse(onNowJSON);
@@ -74,32 +72,48 @@ function onNowPropertyFactory(property) {
   };
 }
 
-async function updateNowPlaying() {
+async function updatePlaylist() {
   const response = await chrome.runtime.sendMessage({ destination: "updatePlaylist" });
   if (!response.hasOwnProperty("playlistData")) { 
     return
+  }
+  // check that data is in service worker is fresh and update UI accordingly
+  if(response.playlistIsUpdated && nowPlaying.classList.contains("loading")){
+    removePlaylistLoadingState();
   }
   // avoid unnecessary DOM updates
   if (["artist", "track", "onNowJSON"].every(key => response.playlistData[key] === cachedPlaylistData[key])) {
     return;
   }
-  
-  const { artist, track, playlistID, artistBlurb, onNowJSON } = response.playlistData;
+  updateNowPlayingMarkup(response.playlistData);
+}
+
+function removePlaylistLoadingState() {
+  nowPlaying.classList.remove("loading");
+}
+
+function updateNowPlayingMarkup(playlistData) {
+  const { artist, track, playlistID, artistBlurb, onNowJSON } = playlistData;
   artistContainer.innerHTML = `by <strong>${artist}</strong>`;
   trackContainer.innerHTML = `\"${track}\"`;
   artistContainer.title = artistBlurb || "";
-
   updateShowInfo(onNowJSON, playlistID);
 }
 
+/**
+ * @description Updates the show name and host in the UI.
+ * Accounts for the data structure of onNowJSON 
+ * @param {string} onNowJSON
+ * @param {string} playlistID 
+ */
 function updateShowInfo(onNowJSON, playlistID) {
-  [showName, showHost, showURL] = ["showName", "showHost", "showURL"]
+  [showName, showHost] = ["showName", "showHost"]
     .map(onNowPropertyFactory)
     .map(fn => fn(onNowJSON));
-  showContainer.innerHTML = buildShowMarkup(showName, showHost, showURL, playlistID);
+  showContainer.innerHTML = buildShowMarkup(showName, showHost, playlistID);
 }
 
-function buildShowMarkup(showName, showHost, showURL, playlistID) {
+function buildShowMarkup(showName, showHost, playlistID) {
   return `on <a href="https://www.wfmu.org/playlists/shows/${playlistID}" target="_blank">${showName}</a> ${showHost && "with"}<br>${showHost}`;
 }
 

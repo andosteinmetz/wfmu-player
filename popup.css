@@ -92,6 +92,10 @@ a {
   padding: 20px 40px;
 }
 
+.now-playing.loading {
+  color: #777777;
+}
+
 @keyframes rotate {
   to {
     stroke-dashoffset: 0;
