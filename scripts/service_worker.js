@@ -4,32 +4,46 @@ const config = {
   databaseURL: "radiorethinkprod-default-rtdb.firebaseio.com"
 }
 
+let playlistIsUpdated = false;
+
 firebase.initializeApp(config);
 const playlistRef = firebase.database().ref('playlistData/wfmu');
 
-playlistRef.on("value", async function(snapshot){
+waitForPlaylistUpdate();
+
+// Update the playlist data in local storage with updates from firebase
+playlistRef.on("value", function(snapshot) {
   const changedPost = snapshot.val();
-  // console.log(changedPost);
-  const {artist, track, onNowJSON, artistBlurb, playlistID} = changedPost;
+  const { artist, track, onNowJSON, artistBlurb, playlistID } = changedPost;
   chrome.storage.local.set({artist, track, onNowJSON, artistBlurb, playlistID});
 })
 
+// reset the audio state on startup
 chrome.runtime.onStartup.addListener(() => {
   chrome.storage.local.set({audioState: false});
 })
 
+
+/** 
+ * Respond to front-end request for latest playlist data
+ * Using .then() here and returning true to indicate that we will send a response
+ * asynchronously.
+ * see https://stackoverflow.com/questions/44056271/chrome-runtime-onmessage-response-with-async-await
+ */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.hasOwnProperty("destination") && request.destination === "updatePlaylist") {
     getPlaylistData().then((playlistData) => {
-      sendResponse({playlistData});
+      sendResponse({playlistIsUpdated, playlistData});
     });
     return true;
   }
 });
 
+/**
+ * @description Get the latest playlist data from local storage
+ */
 async function getPlaylistData() {
   const { artist, track, playlistID, artistBlurb, onNowJSON } = await chrome.storage.local.get(["artist", "track", "playlistID", "artistBlurb", "onNowJSON"]);
-  // console.log(JSON.parse(onNowJSON))
   return {
     artist,
     track,
@@ -37,4 +51,27 @@ async function getPlaylistData() {
     artistBlurb,
     onNowJSON
   }
+}
+
+/**
+ * @description Waits for an update from firebase to tell the front end that playlist data is fresh
+ */
+function waitForPlaylistUpdate() {
+  const p = new Promise((resolve, reject) => {
+    playlistRef.once("value", function(snapshot) {
+      const changedPost = snapshot.val();
+      if (changedPost) {
+        const { artist, track, onNowJSON, artistBlurb, playlistID } = changedPost;
+        chrome.storage.local.set({artist, track, onNowJSON, artistBlurb, playlistID});
+        resolve(true);
+      }
+      else {
+        reject("No playlist data found");
+      }
+    });
+  });
+
+  p.then(() => {
+    playlistIsUpdated = true;
+  });
 }
