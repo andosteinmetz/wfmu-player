@@ -21,14 +21,6 @@ button.addEventListener("click", async () => {
   return true;
 });
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.hasOwnProperty("audioState") && request.audioState) {
-    chrome.action.setBadgeText({
-      text: request.audioState
-    });
-  }
-});
-
 function disableButton() {
   button.ariaDisabled = true;
   button.setAttribute("disabled", "disabled");
