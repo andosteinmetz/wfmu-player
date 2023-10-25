@@ -85,6 +85,7 @@ async function updatePlaylist() {
   if (["artist", "track", "onNowJSON"].every(key => response.playlistData[key] === cachedPlaylistData[key])) {
     return;
   }
+  cachedPlaylistData = response.playlistData;
   updateNowPlayingMarkup(response.playlistData);
 }
 
