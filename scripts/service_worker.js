@@ -25,7 +25,12 @@ chrome.runtime.onStartup.addListener(() => {
 
 
 /** 
+ * @param {Object} request
+ * @param {Object} sender
+ * @param {Function} sendResponse
+ * @return {boolean}
  * Respond to front-end request for latest playlist data
+ * playlistIsUpdated tells the front-end whether the playlist data is fresh (after the background worker wakes up from inactivity)
  * Using .then() here and returning true to indicate that we will send a response
  * asynchronously.
  * see https://stackoverflow.com/questions/44056271/chrome-runtime-onmessage-response-with-async-await
@@ -40,6 +45,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 /**
+ * @return {Promise <Object>}
  * @description Get the latest playlist data from local storage
  */
 async function getPlaylistData() {
@@ -54,6 +60,7 @@ async function getPlaylistData() {
 }
 
 /**
+ * @return {void}
  * @description Waits for an update from firebase to tell the front end that playlist data is fresh
  */
 function waitForPlaylistUpdate() {

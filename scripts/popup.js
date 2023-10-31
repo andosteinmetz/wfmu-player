@@ -6,7 +6,7 @@ const artistContainer = nowPlaying.querySelector('.artist');
 const trackContainer = nowPlaying.querySelector('.track');
 const showContainer = nowPlaying.querySelector('.show');
 
-let creating; // A global promise to avoid concurrency issues
+let creating; // A global promise to avoid concurrency issues when creating the offscreen document.
 let audioState = false;
 
 let cachedPlaylistData = {};
@@ -21,18 +21,29 @@ button.addEventListener("click", async () => {
   return true;
 });
 
+/**
+ * @return {void}
+ */
 function disableButton() {
   button.ariaDisabled = true;
   button.setAttribute("disabled", "disabled");
   loadingAnimation.classList.remove("hidden");
 }
 
+/**
+ * @return {void}
+ */
 function enableButton() {
   loadingAnimation.classList.add("hidden");
   button.ariaDisabled = false;
   button.removeAttribute("disabled");
 }
 
+/**
+ * @return {void}
+ * 
+ * Initializes the popup when opened.
+ */
 async function init() {
   setupOffscreenDocument('background.html');
   await updateAudioState();
@@ -41,11 +52,22 @@ async function init() {
   setInterval(updatePlaylist, 1000);
 }
 
+/**
+ * @return {void}
+ * 
+ * Updates the audioState variable with the value stored in local storage.
+ */
 async function updateAudioState() {
   const state = await chrome.storage.local.get(['audioState']);
   audioState = state.audioState;
 }
 
+/**
+ * @param {boolean} audioState
+ * @return {void}
+ * 
+ * Update the button and badge to reflect the audio state.
+ */
 function updateUI(audioState) {
   buttonText.innerHTML = audioState ? "Pause WFMU" : "Play WFMU";
   chrome.action.setBadgeText({
@@ -72,6 +94,11 @@ function onNowPropertyFactory(property) {
   };
 }
 
+/**
+ * @return {void}
+ * 
+ * Get the latest playlist information from the service worker and update the UI.
+ */
 async function updatePlaylist() {
   const response = await chrome.runtime.sendMessage({ destination: "updatePlaylist" });
   if (!response.hasOwnProperty("playlistData")) { 
@@ -89,10 +116,17 @@ async function updatePlaylist() {
   updateNowPlayingMarkup(response.playlistData);
 }
 
+/**
+ * @return {void}
+ */
 function removePlaylistLoadingState() {
   nowPlaying.classList.remove("loading");
 }
 
+/**
+ * @param {Object} playlistData
+ * @return {void}
+ */
 function updateNowPlayingMarkup(playlistData) {
   const { artist, track, playlistID, artistBlurb, onNowJSON } = playlistData;
   artistContainer.innerHTML = `by <strong>${artist}</strong>`;
@@ -114,10 +148,21 @@ function updateShowInfo(onNowJSON, playlistID) {
   showContainer.innerHTML = buildShowMarkup(showName, showHost, playlistID);
 }
 
+/**
+ * @param {string} showName
+ * @param {string} showHost
+ * @param {string} playlistID
+ * @return {string}
+ * 
+ * Builds the link to the show playlist page.
+ */ 
 function buildShowMarkup(showName, showHost, playlistID) {
   return `on <a href="https://www.wfmu.org/playlists/shows/${playlistID}" target="_blank">${showName}</a> ${showHost && "with"}<br>${showHost}`;
 }
 
+/**
+ * @return {void}
+ */
 async function toggleAudio() {
   audioState = !audioState;
   const response = await chrome.runtime.sendMessage({
@@ -129,6 +174,13 @@ async function toggleAudio() {
   }
 }
 
+/**
+ * @param {string} path
+ * @return {void}
+ * 
+ * Creates an offscreen document with the given path if one does not already exist.
+ * This is necessary to play audio in the background.
+ */ 
 async function setupOffscreenDocument(path) {
   // Check all windows controlled by the service worker to see if one 
   // of them is the offscreen document with the given path
